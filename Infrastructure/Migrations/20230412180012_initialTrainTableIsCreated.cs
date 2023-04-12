@@ -2,7 +2,7 @@
 
 namespace Infrastructure.Migrations
 {
-    public partial class initialTrainTableIsCreated : Migration
+    public partial class InitialTrainTableIsCreated : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

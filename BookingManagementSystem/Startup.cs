@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.ApplicationContext;
+using Infrastructure.Interfaces.IUnitOfWork;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using OnlineShopWebAPIs.BusinessLogic.UnitOfWork;
 
 namespace BookingManagementSystem
 {
@@ -32,6 +34,9 @@ namespace BookingManagementSystem
             //DB connection
             services.AddDbContext<BookingSystemApplicationContext>
                 (opt => opt.UseSqlServer(Configuration.GetConnectionString("BookingManagementSystemDev")));
+
+            //IUnitOfWork Config
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 
