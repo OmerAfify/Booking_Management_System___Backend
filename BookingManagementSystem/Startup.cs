@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BookingManagementSystem.Helpers.MappingProfile;
 using Infrastructure.ApplicationContext;
 using Infrastructure.Interfaces.IUnitOfWork;
 using Microsoft.AspNetCore.Builder;
@@ -31,12 +32,15 @@ namespace BookingManagementSystem
         {
 
 
-            //DB connection
+            //DB Connection
             services.AddDbContext<BookingSystemApplicationContext>
                 (opt => opt.UseSqlServer(Configuration.GetConnectionString("BookingManagementSystemDev")));
 
             //IUnitOfWork Config
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            //AutoMapper Config
+            services.AddAutoMapper(typeof(ApplicationMappingProfile));
 
 
 

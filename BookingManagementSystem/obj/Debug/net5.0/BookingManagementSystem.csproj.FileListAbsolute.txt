@@ -63,3 +63,9 @@ D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingMan
 D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\obj\Debug\net5.0\BookingManagementSystem.genruntimeconfig.cache
 D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\Humanizer.dll
 D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\Microsoft.EntityFrameworkCore.Design.dll
+D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\AutoMapper.dll
+D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\Microsoft.Extensions.Options.dll
+D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\Microsoft.Extensions.Primitives.dll
+D:\6-Programming and courses\My Local Projects Repository\ASP.net MVC\BookingManagementSystem\BookingManagementSystem\bin\Debug\net5.0\System.Runtime.CompilerServices.Unsafe.dll

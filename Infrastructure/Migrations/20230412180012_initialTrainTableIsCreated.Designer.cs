@@ -10,7 +10,7 @@ namespace Infrastructure.Migrations
 {
     [DbContext(typeof(BookingSystemApplicationContext))]
     [Migration("20230412180012_initialTrainTableIsCreated")]
-    partial class initialTrainTableIsCreated
+    partial class InitialTrainTableIsCreated
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
