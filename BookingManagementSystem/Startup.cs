@@ -59,7 +59,11 @@ namespace BookingManagementSystem
             });
 
 
-         
+            //CORS Policy
+            services.AddCors(o => o.AddPolicy("allowAll",
+                builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader() ));
+
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -76,6 +80,8 @@ namespace BookingManagementSystem
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseCors("allowAll");
 
             app.UseEndpoints(endpoints =>
             {

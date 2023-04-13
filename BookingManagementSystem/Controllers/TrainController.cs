@@ -56,7 +56,7 @@ namespace BookingManagementSystem.Controllers
             
             try
             {
-                var trains = await _unitOfWork.Trains.GetAllAsync();
+                var trains = await _unitOfWork.Trains.GetAllAsync(null,q=>q.OrderByDescending(q=>q.Id));
 
                 return _mapper.Map<List<ReturnTrainDTO>>(trains);
 
@@ -82,7 +82,7 @@ namespace BookingManagementSystem.Controllers
                 
                 var result = await _unitOfWork.Save();
 
-                return (result >= 1 ) ? Ok("added successfully!") : BadRequest(new ApiResponse(400));
+                return (result >= 1 ) ? Ok() : BadRequest(new ApiResponse(400));
 
             }
             catch (Exception ex)
@@ -143,7 +143,7 @@ namespace BookingManagementSystem.Controllers
 
                 var result = await _unitOfWork.Save();
 
-                return (result >= 1) ? Ok($"train of id : {id} is removed successfully!") : BadRequest(new ApiResponse(400));
+                return (result >= 1) ? NoContent() : BadRequest(new ApiResponse(400));
 
             }
             catch (Exception ex)
