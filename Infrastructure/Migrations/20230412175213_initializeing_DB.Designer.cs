@@ -10,7 +10,7 @@ namespace Infrastructure.Migrations
 {
     [DbContext(typeof(BookingSystemApplicationContext))]
     [Migration("20230412175213_initializeing_DB")]
-    partial class initializeing_DB
+    partial class Initializeing_DB
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -1,19 +1,16 @@
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Threading.Tasks;
+using BookingManagementSystem.Errors;
 using BookingManagementSystem.Helpers.MappingProfile;
 using Infrastructure.ApplicationContext;
 using Infrastructure.Interfaces.IUnitOfWork;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using OnlineShopWebAPIs.BusinessLogic.UnitOfWork;
 
@@ -31,6 +28,12 @@ namespace BookingManagementSystem
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddControllers();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "BookingManagementSystem", Version = "v1" });
+            });
+
 
             //DB Connection
             services.AddDbContext<BookingSystemApplicationContext>
@@ -42,14 +45,21 @@ namespace BookingManagementSystem
             //AutoMapper Config
             services.AddAutoMapper(typeof(ApplicationMappingProfile));
 
+            //Overriding ApiController ModelState Default Behavior
+            services.Configure<ApiBehaviorOptions>(opt => {
+                opt.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var errors = actionContext.ModelState.Where(e => e.Value.Errors.Count > 0)
+                                 .SelectMany(x => x.Value.Errors).Select(x => x.ErrorMessage).ToArray();
 
+                    return new BadRequestObjectResult(new ApiValidationResponse { Errors = errors });
 
+                };
 
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "BookingManagementSystem", Version = "v1" });
             });
+
+
+         
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

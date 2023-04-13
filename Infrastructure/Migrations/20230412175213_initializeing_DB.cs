@@ -2,7 +2,7 @@
 
 namespace Infrastructure.Migrations
 {
-    public partial class initializeing_DB : Migration
+    public partial class Initializeing_DB : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

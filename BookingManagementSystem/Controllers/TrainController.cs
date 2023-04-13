@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BookingManagementSystem.DTOs;
+using BookingManagementSystem.Errors;
 using Core.Models;
 using Infrastructure.Interfaces.IUnitOfWork;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,8 @@ namespace BookingManagementSystem.Controllers
             _mapper = mapper;
         }
 
+     
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<ReturnTrainDTO>> GetTrainById(int id)
         {
@@ -32,18 +35,18 @@ namespace BookingManagementSystem.Controllers
                 var train = await _unitOfWork.Trains.GetByIdAsync(id);
 
                 if (train == null)
-                {
-                    return NotFound();
-                }
-
+                    return NotFound(new ApiResponse(404,$"train id : {id} is not found."));
+                
 
                 return  _mapper.Map<ReturnTrainDTO>(train);
             
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return StatusCode(500,ex.Message);
+                return StatusCode(500, new ApiExceptionResponse(500,
+                                ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
             }
+
         }
 
 
@@ -60,38 +63,96 @@ namespace BookingManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new ApiExceptionResponse(500, 
+                                ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
             }
+
         }
 
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<ReturnTrainDTO>>> AddNewTrain([FromBody] AddTrainDTO addTrainDTO)
+        public async Task<ActionResult> AddNewTrain([FromBody] AddTrainDTO addTrainDTO)
         {
 
             try
             {
+                if (!ModelState.IsValid)  return BadRequest(ModelState);
 
-                //modelState check
 
-                var train = _mapper.Map<Train>(addTrainDTO);
-
-                _unitOfWork.Trains.InsertAsync(train);
+                _unitOfWork.Trains.InsertAsync(_mapper.Map<Train>(addTrainDTO));
                 
                 var result = await _unitOfWork.Save();
 
-                if (result <= 0)
-                    return BadRequest();
-
-                return Ok("added successfully!");
+                return (result >= 1 ) ? Ok("added successfully!") : BadRequest(new ApiResponse(400));
 
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new ApiExceptionResponse(500,
+                                ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
             }
+
         }
 
 
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateTrain(int id, [FromBody] AddTrainDTO addTrainDTO)
+        {
+            try
+            {
+                if (id <= 0) return BadRequest(new ApiResponse(400, "Id can not be 0 or less."));
+
+                if (!ModelState.IsValid)  return BadRequest(ModelState);
+
+
+                var train = await _unitOfWork.Trains.GetByIdAsync(id);
+
+                if (train == null)
+                    return NotFound(new ApiResponse(404));
+
+                _mapper.Map(addTrainDTO, train);
+
+                _unitOfWork.Trains.Update(train);
+
+                var result = await _unitOfWork.Save();
+
+                return (result >= 1) ? Ok($"train of id : {id} is updated successfully!") : BadRequest(new ApiResponse(400));
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500,
+                                ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
+            }
+
+        }
+
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteTrain(int id)
+        {
+            try
+            {
+                if (id <= 0) return BadRequest(new ApiResponse(400, "Id can not be 0 or less."));
+
+               var train = await _unitOfWork.Trains.GetByIdAsync(id);
+
+                if (train == null)
+                    return NotFound(new ApiResponse(404));
+       
+                _unitOfWork.Trains.Delete(train);
+
+                var result = await _unitOfWork.Save();
+
+                return (result >= 1) ? Ok($"train of id : {id} is removed successfully!") : BadRequest(new ApiResponse(400));
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500,
+                                ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
+            }
+
+        }
 
 
     }
