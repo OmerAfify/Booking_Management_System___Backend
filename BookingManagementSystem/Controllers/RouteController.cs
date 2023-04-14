@@ -14,12 +14,12 @@ namespace BookingManagementSystem.Controllers
 {
     [Route("api/[action]")]
     [ApiController]
-    public class TrainController : ControllerBase
+    public class RouteController : ControllerBase
     {
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public TrainController(IUnitOfWork unitOfWork, IMapper mapper) {
+        public RouteController(IUnitOfWork unitOfWork, IMapper mapper) {
 
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -28,17 +28,17 @@ namespace BookingManagementSystem.Controllers
      
         
         [HttpGet("{id}")]
-        public async Task<ActionResult<ReturnTrainDTO>> GetTrainById(int id)
+        public async Task<ActionResult<RouteDTO>> GetRouteById(int id)
         {
             try {
               
-                var train = await _unitOfWork.Trains.GetByIdAsync(id);
+                var route = await _unitOfWork.Routes.GetByIdAsync(id);
 
-                if (train == null)
-                    return NotFound(new ApiResponse(404,$"train id : {id} is not found."));
+                if (route == null)
+                    return NotFound(new ApiResponse(404,$"route id : {id} is not found."));
                 
 
-                return  _mapper.Map<ReturnTrainDTO>(train);
+                return  _mapper.Map<RouteDTO>(route);
             
             }
             catch (Exception ex)
@@ -51,14 +51,14 @@ namespace BookingManagementSystem.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ReturnTrainDTO>>> GetAllTrains()
+        public async Task<ActionResult<IEnumerable<RouteDTO>>> GetAllRoutes()
         {
             
             try
             {
-                var trains = await _unitOfWork.Trains.GetAllAsync(null,q=>q.OrderByDescending(q=>q.Id));
+                var routes = await _unitOfWork.Routes.GetAllAsync(null,q=>q.OrderByDescending(q=>q.Id));
 
-                return _mapper.Map<List<ReturnTrainDTO>>(trains);
+                return _mapper.Map<List<RouteDTO>>(routes);
 
             }
             catch (Exception ex)
@@ -70,7 +70,7 @@ namespace BookingManagementSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddNewTrain([FromBody] AddTrainDTO addTrainDTO)
+        public async Task<ActionResult> AddNewRoute([FromBody] AddRouteDTO addRouteDTO)
         {
 
             try
@@ -78,7 +78,7 @@ namespace BookingManagementSystem.Controllers
                 if (!ModelState.IsValid)  return BadRequest(ModelState);
 
 
-                _unitOfWork.Trains.InsertAsync(_mapper.Map<Train>(addTrainDTO));
+                _unitOfWork.Routes.InsertAsync(_mapper.Map<Route>(addRouteDTO));
                 
                 var result = await _unitOfWork.Save();
 
@@ -95,7 +95,7 @@ namespace BookingManagementSystem.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateTrain(int id, [FromBody] AddTrainDTO addTrainDTO)
+        public async Task<ActionResult> UpdateRoute(int id, [FromBody] AddRouteDTO addRouteDTO)
         {
             try
             {
@@ -104,14 +104,14 @@ namespace BookingManagementSystem.Controllers
                 if (!ModelState.IsValid)  return BadRequest(ModelState);
 
 
-                var train = await _unitOfWork.Trains.GetByIdAsync(id);
+                var route = await _unitOfWork.Routes.GetByIdAsync(id);
 
-                if (train == null)
+                if (route == null)
                     return NotFound(new ApiResponse(404));
 
-                _mapper.Map(addTrainDTO, train);
+                _mapper.Map(addRouteDTO, route);
 
-                _unitOfWork.Trains.Update(train);
+                _unitOfWork.Routes.Update(route);
 
                 var result = await _unitOfWork.Save();
 
@@ -128,18 +128,18 @@ namespace BookingManagementSystem.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTrain(int id)
+        public async Task<ActionResult> DeleteRoute(int id)
         {
             try
             {
                 if (id <= 0) return BadRequest(new ApiResponse(400, "Id can not be 0 or less."));
 
-               var train = await _unitOfWork.Trains.GetByIdAsync(id);
+               var route = await _unitOfWork.Routes.GetByIdAsync(id);
 
-                if (train == null)
+                if (route == null)
                     return NotFound(new ApiResponse(404));
        
-                _unitOfWork.Trains.Delete(train);
+                _unitOfWork.Routes.Delete(route);
 
                 var result = await _unitOfWork.Save();
 

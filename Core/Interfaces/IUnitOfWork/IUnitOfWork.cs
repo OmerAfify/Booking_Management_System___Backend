@@ -10,6 +10,7 @@ namespace Infrastructure.Interfaces.IUnitOfWork
     public interface IUnitOfWork : IDisposable
     {
         public IGenericRepository<Train> Trains { get; }
+        public IGenericRepository<Route> Routes { get; }
         public Task<int> Save();
     }
 }

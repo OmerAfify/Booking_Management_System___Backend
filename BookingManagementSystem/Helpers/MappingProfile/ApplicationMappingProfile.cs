@@ -12,10 +12,13 @@ namespace BookingManagementSystem.Helpers.MappingProfile
     {
         public ApplicationMappingProfile()
         {
-
+            //Train
             CreateMap<AddTrainDTO, Train>().ReverseMap();
-
             CreateMap<ReturnTrainDTO,Train>().ReverseMap();
+
+            //Route
+            CreateMap<AddRouteDTO, Route>().ReverseMap();
+            CreateMap<RouteDTO, Route>().ReverseMap();
 
         }
     }

@@ -13,6 +13,7 @@ namespace Infrastructure.ApplicationContext
 
         //tables
         public DbSet<Train> Trains { get; set; }
+        public DbSet<Route> Routes { get; set; }
 
 
         public BookingSystemApplicationContext()
