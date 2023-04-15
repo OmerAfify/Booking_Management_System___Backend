@@ -11,6 +11,7 @@ namespace Infrastructure.Interfaces.IUnitOfWork
     {
         public IGenericRepository<Train> Trains { get; }
         public IGenericRepository<Route> Routes { get; }
+        public IGenericRepository<Schedule> Schedules { get; }
         public Task<int> Save();
     }
 }

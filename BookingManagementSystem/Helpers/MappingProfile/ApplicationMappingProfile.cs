@@ -19,6 +19,13 @@ namespace BookingManagementSystem.Helpers.MappingProfile
             //Route
             CreateMap<AddRouteDTO, Route>().ReverseMap();
             CreateMap<RouteDTO, Route>().ReverseMap();
+               
+
+            //Schedule
+            CreateMap<AddScheduleDTO, Schedule>().ReverseMap();
+            CreateMap<ScheduleDTO, Schedule>().ReverseMap()
+                .ForMember(s => s.TrainName, opt => opt.MapFrom(s => s.Train.Name))
+                .ForMember(s => s.Route, opt => opt.MapFrom(s => "From "+ s.Route.Departure + " to " + s.Route.Arrival));
 
         }
     }

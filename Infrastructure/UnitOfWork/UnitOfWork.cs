@@ -16,13 +16,15 @@ namespace OnlineShopWebAPIs.BusinessLogic.UnitOfWork
 
         public IGenericRepository<Train> Trains { get; }
         public IGenericRepository<Route> Routes { get; }
+        public IGenericRepository<Schedule> Schedules { get; }
 
         public UnitOfWork(BookingSystemApplicationContext context)
         {
             _context = context;
 
              Trains = new GenericRepository<Train>(context); 
-             Routes = new GenericRepository<Route>(context); 
+             Routes = new GenericRepository<Route>(context);
+             Schedules = new GenericRepository<Schedule>(context); 
 
         }
 

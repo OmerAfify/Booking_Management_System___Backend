@@ -14,6 +14,7 @@ namespace Infrastructure.ApplicationContext
         //tables
         public DbSet<Train> Trains { get; set; }
         public DbSet<Route> Routes { get; set; }
+        public DbSet<Schedule> Schedule { get; set; }
 
 
         public BookingSystemApplicationContext()
@@ -28,7 +29,13 @@ namespace Infrastructure.ApplicationContext
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);
+
+
+            modelBuilder.Entity<Schedule>().HasIndex(u => new { u.RouteId, u.TrainId, u.Date}).IsUnique();
+
         }
+
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
