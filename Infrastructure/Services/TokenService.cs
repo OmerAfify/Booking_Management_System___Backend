@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Core.Interfaces.IServices;
 using Core.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -15,17 +16,19 @@ namespace Infrastructure.Services
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _configuration;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TokenService(IConfiguration configuration)
+        public TokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
         {
             _configuration = configuration;
+            _userManager = userManager;
         }
 
         public string CreateToken(ApplicationUser applicationUser)
         {
             var signingCredentials = GetSigningCredentials();
-            var claims = GetClaims(applicationUser);
-            var tokenOptions = GenerateTokenOptions(signingCredentials, claims);
+            var claims = GetClaimsAsync(applicationUser);
+            var tokenOptions = GenerateTokenOptions(signingCredentials, claims.Result);
 
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
         }
@@ -38,13 +41,20 @@ namespace Infrastructure.Services
             return new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
         }
 
-        private static List<Claim> GetClaims(ApplicationUser user)
+        private async Task<List<Claim>> GetClaimsAsync(ApplicationUser user)
         {
+            var roles =  await _userManager.GetRolesAsync(user);
+
             var claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FirstName)
             };
+
+            foreach(var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             return claims;
         }

@@ -20,11 +20,46 @@ namespace BookingManagementSystem.DTOs
     }
 
 
-    public class UserDTO : LoginDTO
+    public class RegisterDTO : LoginDTO
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
     }
+
+
+    public class GeneralUserDTO
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public List<string> Roles { get; set; }
+
+    }
+
+    public class AddNewUserDTO : GeneralUserDTO
+    {
+        public string Password { get; set; }
+    }
+
+
+    public class ReturnedUserDTO : GeneralUserDTO
+    {
+       public string Id { get; set; }
+    }
+
+
+    public class UpdateUserDTO
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public List<string> Roles { get; set; }
+
+
+    }
+
+
+
+
 
 }

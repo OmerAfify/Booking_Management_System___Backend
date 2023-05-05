@@ -27,6 +27,11 @@ namespace BookingManagementSystem.Helpers.MappingProfile
                 .ForMember(s => s.TrainName, opt => opt.MapFrom(s => s.Train.Name))
                 .ForMember(s => s.Route, opt => opt.MapFrom(s => "From "+ s.Route.Departure + " to " + s.Route.Arrival));
 
+            //Users
+            //CreateMap<ReturnedUserDTO, ApplicationUser>().ReverseMap()
+            //    .ForMember(s => s.Roles, opt => opt.MapFrom(s => s.Roles.Select(x=>x.Name).ToList()  ) );
+       
+        
         }
     }
 }

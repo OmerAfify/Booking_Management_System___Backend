@@ -5,11 +5,13 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using BookingManagementSystem.DTOs;
+using BookingManagementSystem.Errors;
 using Core.Interfaces.IServices;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookingManagementSystem.Controllers
 {
@@ -20,14 +22,17 @@ namespace BookingManagementSystem.Controllers
     
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ITokenService _tokenService;
+
         public AccountController(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager,
             ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _roleManager = roleManager;
 
         }
 
@@ -118,7 +123,7 @@ namespace BookingManagementSystem.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<UserDTO>> Register([FromBody] UserDTO registerUserDTO)
+        public async Task<ActionResult> Register([FromBody] RegisterDTO registerUserDTO)
         {
 
             if (!ModelState.IsValid)
@@ -140,16 +145,24 @@ namespace BookingManagementSystem.Controllers
                     LastName = registerUserDTO.LastName
                 };
 
+
                 var result = await _userManager.CreateAsync(user, registerUserDTO.Password);
 
                 if (result.Succeeded)
                 {
-                    return Ok(new
+                    var result2 = await _userManager.AddToRoleAsync(user, "Customer");
+
+                    if (result2.Succeeded)
                     {
-                        user.Email,
-                        Name = string.Format("{0} {1}",user.FirstName, user.LastName),
-                        Token = _tokenService.CreateToken(user)
-                    });
+                        return Ok(new
+                        {
+                            user.Email,
+                            Name = string.Format("{0} {1}", user.FirstName, user.LastName),
+                            Token = _tokenService.CreateToken(user)
+                        });
+                    }
+                    else
+                        return BadRequest();
 
                 }
                 else
@@ -158,13 +171,15 @@ namespace BookingManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Server error : "+ ex.Message);
+                return StatusCode(500, new ApiExceptionResponse(500,
+                                ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
             }
+
 
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserDTO>> Login([FromBody] LoginDTO loginUserDTO)
+        public async Task<ActionResult> Login([FromBody] LoginDTO loginUserDTO)
         {
 
             if (!ModelState.IsValid)
@@ -197,7 +212,8 @@ namespace BookingManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Server error : " + ex.Message);
+                return StatusCode(500, new ApiExceptionResponse(500,
+                                ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
             }
 
         }
@@ -212,12 +228,260 @@ namespace BookingManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Server error : " + ex.Message);
+                return StatusCode(500, new ApiExceptionResponse(500,
+                              ex.Message, (ex.InnerException != null) ? ex.InnerException.Message : ex.StackTrace));
             }
 
         }
 
+        [HttpGet]
+        public async Task<ActionResult<ReturnedUserDTO>> GetUserByEmailAsync(string email)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                    return BadRequest(new ApiValidationResponse() { Errors=new List<string> {"This email is not found" } });
+
+                var roles = await _userManager.GetRolesAsync(user);
+
+                var userToReturn = new ReturnedUserDTO()
+                {
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Id = user.Id,
+                    Roles = roles.ToList()
+                };
+
+                return Ok(userToReturn);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500, ex.Message, ex.InnerException.Message ?? null)); ; ;
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<ActionResult<List<ReturnedUserDTO>>> GetAllUsersAsync()
+        {
+            try {
+
+                var users =  await _userManager.Users.ToListAsync();
+
+                var usersDTO = new List<ReturnedUserDTO>();
+
+                foreach(var user in users)
+                {
+                  var listOfRoles = await _userManager.GetRolesAsync(user);
+
+                   var  userDTO = new ReturnedUserDTO() {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        Roles = listOfRoles.ToList()
+                    };
+
+                    usersDTO.Add(userDTO);
+                }
+             
+                return Ok(usersDTO);
+          
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500, ex.Message, ex.InnerException.Message ?? null)); ; ;
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<ActionResult> GetAllRolesAsync()
+        {
+            try
+            {
+
+                var roles = await _roleManager.Roles.ToListAsync();
+                return Ok(roles);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500, ex.Message, ex.InnerException.Message ?? null));
+            }
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult<List<ReturnedUserDTO>>> AddNewUserAsync([FromBody] AddNewUserDTO addNewUserDTO)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                if (CheckIfEmailExistsAsync(addNewUserDTO.Email).Result.Value)
+                    return BadRequest(new ApiValidationResponse() { Errors = new List<string> { "Email already exists." } });
+
+                var systemRoles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+                var invalidRoles = new List<string>() { };
+
+                foreach (var role in addNewUserDTO.Roles)
+                {
+                    if (!systemRoles.Contains(role))
+                        invalidRoles.Add(role);
+                }
+
+                if (invalidRoles.Count > 0)
+                    return BadRequest(new ApiValidationResponse() { Errors = new List<string>() { "The following roles are invalid : " + string.Join(", ", invalidRoles.ToArray()) } } );
+
+
+                var user = new ApplicationUser(){
+                    Email = addNewUserDTO.Email,
+                    UserName = addNewUserDTO.Email,
+                    FirstName = addNewUserDTO.FirstName,
+                    LastName = addNewUserDTO.LastName
+                };
+
+
+                var result = await _userManager.CreateAsync(user, addNewUserDTO.Password);
+
+                if (result.Succeeded)
+                {
+                    foreach(var role in addNewUserDTO.Roles)
+                    {
+                        var result2 = await _userManager.AddToRoleAsync(user, role);
+
+                        if (result2.Succeeded)
+                            continue;
+                        else
+                            return BadRequest(new ApiResponse(400,"Can't Add role "+role+" to the user."));
+                    }
+                        return Ok(new
+                        {
+                            user.Email,
+                            Name = string.Format("{0} {1}", user.FirstName, user.LastName),
+                        });
+                }
+                else
+                    return BadRequest(new ApiResponse(400, "Failed to Add user."));
+
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500, ex.Message, ex.InnerException.Message ?? null)); ; ;
+            }
+        }
+
+
+        [HttpPut]
+        public async Task<ActionResult> UpdateUserAsync(string email, UpdateUserDTO updateUserDTO) {
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                    return NotFound(new ApiResponse(404, "Can not find user with email  : " + email));
+              
+                var systemRoles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+                var invalidRoles = new List<string>() { };
+
+                foreach (var role in updateUserDTO.Roles)
+                {
+                    if (!systemRoles.Contains(role))
+                        invalidRoles.Add(role);
+                }
+
+                if (invalidRoles.Count > 0)
+                    return BadRequest(new ApiResponse(400, "The following roles are invalid : " + string.Join(", ", invalidRoles.ToArray())));
+
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+                var result1 = await _userManager.RemoveFromRolesAsync(user, userRoles.ToList());
+
+
+
+                user.FirstName = updateUserDTO.FirstName;
+                user.LastName = updateUserDTO.LastName;
+                
+                var result = await _userManager.UpdateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    foreach (var role in updateUserDTO.Roles)
+                    {
+                        var result2 = await _userManager.AddToRoleAsync(user, role);
+
+                        if (result2.Succeeded)
+                            continue;
+                        else
+                            return BadRequest(new ApiResponse(400, "Can't Add role " + role + " to the user."));
+                    }
+                    return Ok(new
+                    {
+                        user.Email,
+                        Name = string.Format("{0} {1}", user.FirstName, user.LastName),
+                    });
+                }
+                else
+                    return BadRequest("Failed to Update a user.");
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500, ex.Message, ex.InnerException.Message ?? null)); ; ;
+
+            }
+
+
+
+        }
+
+
+        [HttpDelete]
+        public async Task<ActionResult> DeleteUserAsync(string email)
+        {
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                    return NotFound(new ApiResponse(404, "Can not find user with email : " + email));
+
+                var result = await _userManager.DeleteAsync(user);
+
+                if (result.Succeeded)
+                    return NoContent();
+                else
+                    return BadRequest();
+                
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiExceptionResponse(500, ex.Message, ex.InnerException.Message ?? null)); ; ;
+
+            }
+
+
+
+        }
 
     }
 }
