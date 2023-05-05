@@ -15,7 +15,7 @@ namespace BookingManagementSystem.DTOs
         public int RouteId { get; set; }
         
         [Required]
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
 
         [Range(1,10000,ErrorMessage ="First Class range value must be between 1 and 10000")]
         public decimal FirstClassPrice { get; set; }

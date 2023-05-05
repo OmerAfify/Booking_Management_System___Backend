@@ -58,6 +58,12 @@ namespace BookingManagementSystem.Controllers
             {
                 var schedules = await _unitOfWork.Schedules.FindRangeAsync(null, new List<string> { "Route", "Train" }, q=>q.OrderByDescending(q=>q.Id));
 
+
+                foreach(var s in schedules)
+                {
+                    s.Date = s.Date.ToLocalTime();
+                }
+
                 return _mapper.Map<List<ScheduleDTO>>(schedules);
 
             }
@@ -79,15 +85,16 @@ namespace BookingManagementSystem.Controllers
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
                 var train = await _unitOfWork.Trains.GetByIdAsync(addScheduleDTO.TrainId);
-                if (train == null) return BadRequest("train Id not found");
+                if (train == null) return BadRequest(new ApiResponse(400,"train Id not found"));
 
                 var route = await _unitOfWork.Routes.GetByIdAsync(addScheduleDTO.RouteId);
-                if (route == null) return BadRequest("route Id not found");
+                if (route == null) return BadRequest(new ApiResponse(400, "route Id not found"));
 
                 var schedule = await _unitOfWork.Schedules.FindAsync(s => s.RouteId == addScheduleDTO.RouteId &&
                                                                s.TrainId == addScheduleDTO.TrainId && s.Date == addScheduleDTO.Date);
                 if (schedule != null)
-                    return BadRequest(new ApiResponse(400, "This Schedule already exists. Please Change either the Date, Route, or Train."));
+                    return BadRequest(new ApiValidationResponse()
+                    { Errors= new List<string> { "This Schedule already exists.Please Change either the Date, Route, or Train." } });
 
 
                 //Insertion        

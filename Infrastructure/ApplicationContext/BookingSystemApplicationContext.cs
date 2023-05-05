@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Core.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.ApplicationContext
 {
-    public class BookingSystemApplicationContext : DbContext
+    public class BookingSystemApplicationContext : IdentityDbContext<ApplicationUser>
     {
 
         //tables

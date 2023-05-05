@@ -8,4 +8,8 @@
     <Folder Include="Interfaces\IRepository\IBusinessRepository\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.17" />
+  </ItemGroup>
+
 </Project>
